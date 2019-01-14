@@ -1,4 +1,4 @@
-package com.namazed.orthobot.bot.model
+package com.namazed.orthobot.bot.model.response
 
 import com.google.gson.annotations.SerializedName
 
@@ -9,9 +9,7 @@ class Message(
     @SerializedName("recipient") val recipient: Recipient = Recipient(),
     @SerializedName("sender") val sender: Sender = Sender(),
     @SerializedName("timestamp") val timestamp: Long = -1
-) {
-    fun isEmpty() = timestamp == -1L
-}
+)
 
 class MessageInfo(
     @SerializedName("mid") val mid: String = "",
@@ -27,3 +25,5 @@ class Sender(
     @SerializedName("name") val name: String = "",
     @SerializedName("user_id") val userId: Long = -1
 )
+
+fun isEmptyMessage(message: Message) = message == null || message.timestamp == -1L

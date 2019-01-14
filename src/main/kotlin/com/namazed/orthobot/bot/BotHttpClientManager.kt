@@ -1,15 +1,16 @@
 package com.namazed.orthobot.bot
 
 import com.namazed.orthobot.ApiKeys
-import com.namazed.orthobot.bot.model.BotInfo
+import com.namazed.orthobot.bot.model.response.BotInfo
 import com.namazed.orthobot.bot.model.ChatId
-import com.namazed.orthobot.bot.model.Updates
+import com.namazed.orthobot.bot.model.response.Updates
 import com.namazed.orthobot.bot.model.UserId
+import com.namazed.orthobot.bot.model.response.SendMessage as ResponseSendMessage
+import com.namazed.orthobot.bot.model.request.SendMessage as RequestSendMessage
 import io.ktor.client.HttpClient
-import io.ktor.client.request.get
-import io.ktor.client.request.parameter
-import io.ktor.client.request.put
-import io.ktor.client.request.url
+import io.ktor.client.request.*
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import java.net.URL
 import kotlin.coroutines.CoroutineContext
 
@@ -31,14 +32,19 @@ class BotHttpClientManager(
         parameter("access_token", apiKeys.botApi)
     }
 
-    suspend fun sendMessage(userId: UserId) = httpClient.put<Updates> {
+    suspend fun sendMessage(userId: UserId, sendMessage: RequestSendMessage) = httpClient.post<ResponseSendMessage> {
         url(URL("$botEndpoint/messages"))
         parameter("access_token", apiKeys.botApi)
+        parameter("user_id", userId.id)
+        contentType(ContentType.parse("application/json"))
+        body = sendMessage
     }
 
-    suspend fun sendMessage(chatId: ChatId) = httpClient.put<Updates> {
+    suspend fun sendMessage(chatId: ChatId) = httpClient.post<ResponseSendMessage> {
         url(URL("$botEndpoint/messages"))
         parameter("access_token", apiKeys.botApi)
+        parameter("chat_id", chatId.id)
+        contentType(ContentType.parse("application/json"))
     }
 
 }

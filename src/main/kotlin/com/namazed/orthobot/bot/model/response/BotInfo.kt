@@ -1,4 +1,4 @@
-package com.namazed.orthobot.bot.model
+package com.namazed.orthobot.bot.model.response
 import com.google.gson.annotations.SerializedName
 
 

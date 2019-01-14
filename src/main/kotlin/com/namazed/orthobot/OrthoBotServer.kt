@@ -4,6 +4,10 @@ package com.namazed.orthobot
 import com.namazed.amspacebackend.client.botModule
 import com.namazed.amspacebackend.client.clientModule
 import com.namazed.orthobot.bot.BotHttpClientManager
+import com.namazed.orthobot.bot.UpdateState
+import com.namazed.orthobot.bot.model.UserId
+import com.namazed.orthobot.bot.model.request.createMessage
+import com.namazed.orthobot.bot.model.response.Message
 import com.namazed.orthobot.bot.processUpdates
 import io.ktor.application.Application
 import io.ktor.application.install
@@ -56,12 +60,19 @@ fun Application.main() {
 }
 
 fun startLongPolling(httpClientManager: BotHttpClientManager, log: Logger) {
-    while (true) {
-        GlobalScope.launch {
+    GlobalScope.launch {
+        while (true) {
             val updates = withContext(httpClientManager.clientDispatcher) {
                 httpClientManager.getUpdates()
             }
-            processUpdates(updates)
+            try {
+                processUpdates(updates) { message: Message ->
+                    httpClientManager.sendMessage(UserId(message.sender.userId),
+                        createMessage(UpdateState.StartState(UserId(message.sender.userId), message)))
+                }
+            } catch (e: Exception) {
+                log.error("Exception when processUpdate", e)
+            }
         }
     }
 }
