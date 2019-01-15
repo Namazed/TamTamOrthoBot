@@ -41,14 +41,20 @@ class CommandParser(val clientManager: HttpClientManager, val log: Logger) {
                 isNotEmptyCallback(it.callback) && it.callback.payload == Payloads.ORTHO_INPUT ->
                     handleStartOrtho(it, answerRequest)
 
-                isNotEmptyCallback(it.callback) && it.callback.payload == Payloads.DICTIONARY_INPUT ->
-                    handleStartDictionary(it, answerRequest)
-
                 isNotEmptyMessage(it.message) && userUpdateState is UpdateState.OrthoState.InputText ->
                     handleInputText(it, sendMessageRequest)
 
+                isNotEmptyCallback(it.callback) && it.callback.payload == Payloads.DICTIONARY_INPUT ->
+                    handleStartDictionary(it, answerRequest)
+
                 isNotEmptyMessage(it.message) && userUpdateState is UpdateState.DictionaryState.InputWord ->
                     handleInputWord(it, sendMessageRequest)
+
+                isNotEmptyCallback(it.callback) && (it.callback.payload == Payloads.TRANSLATE_EN || it.callback.payload == Payloads.TRANSLATE_RU) ->
+                    handleTranslate(it, answerRequest)
+
+                isNotEmptyMessage(it.message) && userUpdateState is UpdateState.TranslateState ->
+                    handleTranslateResult(it, sendMessageRequest)
 
                 isNotEmptyCallback(it.callback) && it.callback.payload == Payloads.BACK ->
                     handleBack(it, answerRequest)
@@ -56,10 +62,40 @@ class CommandParser(val clientManager: HttpClientManager, val log: Logger) {
         }
     }
 
-    inline fun handleStartCommand(it: Update, sendMessageRequest: (UserId, RequestSendMessage) -> ResponseSendMessage) {
+    suspend inline fun handleTranslateResult(update: Update, sendMessageRequest: (UserId, RequestSendMessage) -> ResponseSendMessage) {
+        log.info("processUpdates -> handleTranslateResult")
+        val translateResult = withContext(clientManager.clientDispatcher) {
+            val lang = if (userUpdateState is UpdateState.TranslateState.TranslateRu) "ru" else "en"
+            clientManager.translate(update.message.messageInfo.text, lang)
+        }
+        log.info("processUpdates -> handleTranslateResult, ${translateResult.lang}")
+        val callbackId = if (userUpdateState is UpdateState.TranslateState.TranslateRu) {
+            CallbackId((userUpdateState as UpdateState.TranslateState.TranslateRu).callback.callbackId)
+        } else {
+            CallbackId((userUpdateState as UpdateState.TranslateState.TranslateEn).callback.callbackId)
+        }
+        val userId = UserId(update.message.sender.userId)
+        userUpdateState = UpdateState.TranslateState.Result(userId, callbackId, update.message, translateResult)
+        sendMessageRequest(userId, createMessage(userUpdateState, log))
+    }
+
+    inline fun handleTranslate(update: Update, answerRequest: (CallbackId, RequestAnswerCallback) -> ResponseAnswerCallback) {
+        log.info("processUpdates -> handleTranslate, payloads = ${update.callback.payload}")
+        userUpdateState = if (update.callback.payload == Payloads.TRANSLATE_EN) {
+            UpdateState.TranslateState.TranslateEn(UserId(update.callback.user.userId), update.callback)
+        } else {
+            UpdateState.TranslateState.TranslateRu(UserId(update.callback.user.userId), update.callback)
+        }
+        answerRequest(
+            CallbackId(update.callback.callbackId),
+            RequestAnswerCallback(update.callback.user.userId, createMessage(userUpdateState, log))
+        )
+    }
+
+    inline fun handleStartCommand(update: Update, sendMessageRequest: (UserId, RequestSendMessage) -> ResponseSendMessage) {
         log.info("processUpdates -> handleStartCommand")
-        userUpdateState = UpdateState.StartState(UserId(it.message.sender.userId), it.message)
-        sendMessageRequest(UserId(it.message.sender.userId), createMessage(userUpdateState, log))
+        userUpdateState = UpdateState.StartState(UserId(update.message.sender.userId), update.message)
+        sendMessageRequest(UserId(update.message.sender.userId), createMessage(userUpdateState, log))
     }
 
     inline fun handleStartOrtho(update: Update, answerRequest: (CallbackId, RequestAnswerCallback) -> ResponseAnswerCallback) {

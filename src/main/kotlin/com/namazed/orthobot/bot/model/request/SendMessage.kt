@@ -34,6 +34,18 @@ fun createMessage(state: UpdateState?, log: Logger) = when (state) {
         log.info("createMessage: Dictionary result state")
         SendMessage(createDictionaryText(state.dictionary), createAttachmentKeyboard(state))
     }
+    is UpdateState.TranslateState.TranslateEn -> {
+        log.info("createMessage: Translate on english state")
+        SendMessage(inputTranslateText("английский"), createAttachmentKeyboard(state))
+    }
+    is UpdateState.TranslateState.TranslateRu -> {
+        log.info("createMessage: Translate on russian state")
+        SendMessage(inputTranslateText("русский"), createAttachmentKeyboard(state))
+    }
+    is UpdateState.TranslateState.Result -> {
+        log.info("createMessage: Translate result state")
+        SendMessage(state.translateResult.text[0], createAttachmentKeyboard(state))
+    }
     else -> SendMessage()
 }
 
@@ -68,9 +80,8 @@ fun createDictionaryText(dictionary: Dictionary): String {
 fun initialText(name: String): String {
     return """Приветствую тебя, $name.
         |Похоже у тебя серьезные проблемы, раз ты обратился ко мне.
-        |Учти я могу помочь тебе только в двух случаях.
-        |Первый это проверить твой текст на орфографические ошибки.
-        |Второй это предоставить тебе значение определенного слова.
+        |МОЯ МОЩЬ БЕЗМЕРНА!
+        |Но ты пока потыкай эти кнопки, потренируйся.
         |И не пытайся оживлять мертвых с помощью моей силы, сгоришь в аду за это!
     """.trimMargin()
 }
@@ -91,6 +102,11 @@ fun inputWordText(): String {
     """.trimMargin()
 }
 
+fun inputTranslateText(lang: String): String {
+    return """Введите, пожалуйста, текст который хотите перевести на $lang.
+    """.trimMargin()
+}
+
 fun standardText(name: String): String {
     return """Выбор за тобой, $name.
     """.trimMargin()
@@ -102,6 +118,8 @@ fun createAttachmentKeyboard(state: UpdateState) = listOf(
         when (state) {
             is UpdateState.OrthoState.InputText -> createInlineKeyboardWithBackButton()
             is UpdateState.DictionaryState.InputWord -> createInlineKeyboardWithBackButton()
+            is UpdateState.TranslateState.TranslateEn -> createInlineKeyboardWithBackButton()
+            is UpdateState.TranslateState.TranslateRu -> createInlineKeyboardWithBackButton()
             else -> createStandardInlineKeyboard()
         }
     )
@@ -112,6 +130,10 @@ private fun createStandardInlineKeyboard() = InlineKeyboard(
         listOf(
             Button(ButtonType.CALLBACK.value.toLowerCase(), "Значение слова", payload = Payloads.DICTIONARY_INPUT),
             Button(ButtonType.CALLBACK.value.toLowerCase(), "Проверка орфографии", payload = Payloads.ORTHO_INPUT)
+        ),
+        listOf(
+            Button(ButtonType.CALLBACK.value.toLowerCase(), "Перевести текст на английский", payload = Payloads.TRANSLATE_EN),
+            Button(ButtonType.CALLBACK.value.toLowerCase(), "Перевести текст на русский", payload = Payloads.TRANSLATE_RU)
         )
     )
 )

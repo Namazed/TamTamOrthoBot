@@ -3,6 +3,7 @@ package com.namazed.orthobot.client
 import com.namazed.orthobot.ApiKeys
 import com.namazed.orthobot.client.model.CheckResult
 import com.namazed.orthobot.client.model.Dictionary
+import com.namazed.orthobot.client.model.TranslateResult
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
@@ -30,9 +31,11 @@ class HttpClientManager(
         parameter("text", text)
     }
 
-//    suspend fun translateRuEn(text: String) = httpClient.get<> {
-//        url(URL("https://translate.yandex.net/api/v1.5/tr.json/translate?"))
-//        parameter("key", )
-//    }
+    suspend fun translate(text: String, lang: String) = httpClient.get<TranslateResult> {
+        url(URL("https://translate.yandex.net/api/v1.5/tr.json/translate?"))
+        parameter("key", apiKeys.translateApi)
+        parameter("lang", lang)
+        parameter("text", text)
+    }
 
 }
