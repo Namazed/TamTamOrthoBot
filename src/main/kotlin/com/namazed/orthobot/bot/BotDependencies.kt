@@ -1,6 +1,5 @@
-package com.namazed.amspacebackend.client
+package com.namazed.orthobot.bot
 
-import com.namazed.orthobot.bot.BotHttpClientManager
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.features.json.GsonSerializer
@@ -10,6 +9,7 @@ import org.koin.dsl.module.module
 
 val botModule = module {
     factory(name = "BotClient") { createBotHttpClient() }
+    factory { CommandParser(get(), getProperty("LOGGER")) }
     single { BotHttpClientManager(get(name = "BotClient"), get(), get("clientDispatcher")) }
 }
 
@@ -23,6 +23,7 @@ fun createBotHttpClient(): HttpClient = HttpClient(OkHttp) {
             followRedirects(true)
         }
     }
+
     install(JsonFeature) {
         serializer = GsonSerializer {
             serializeNulls()

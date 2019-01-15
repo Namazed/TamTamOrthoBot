@@ -1,4 +1,4 @@
-package com.namazed.amspacebackend.client.model
+package com.namazed.orthobot.client.model
 
 import com.google.gson.annotations.SerializedName
 
@@ -9,15 +9,15 @@ class Dictionary(
 class Def(
     @SerializedName("pos") val pos: String,
     @SerializedName("text") val text: String,
-    @SerializedName("tr") val tr: List<Tr>
+    @SerializedName("tr") val main: List<Main> = emptyList()
 )
 
 class Main(
-    @SerializedName("ex") val ex: List<Examples>,
-    @SerializedName("mean") val mean: List<Mean>,
-    @SerializedName("pos") val pos: String,
-    @SerializedName("syn") val synonyms: List<Synonym>,
-    @SerializedName("text") val text: String
+    @SerializedName("ex") val examples: List<Examples> = emptyList(),
+    @SerializedName("mean") val means: List<Mean> = emptyList(),
+    @SerializedName("pos") val pos: String = "",
+    @SerializedName("syn") val synonyms: List<Synonym> = emptyList(),
+    @SerializedName("text") val text: String = ""
 )
 
 class Examples(

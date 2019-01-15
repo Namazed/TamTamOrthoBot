@@ -26,4 +26,4 @@ class Sender(
     @SerializedName("user_id") val userId: Long = -1
 )
 
-fun isEmptyMessage(message: Message) = message == null || message.timestamp == -1L
+fun isNotEmptyMessage(message: Message?) = message != null && message != EMPTY_MESSAGE

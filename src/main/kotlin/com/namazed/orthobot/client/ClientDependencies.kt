@@ -1,6 +1,5 @@
-package com.namazed.amspacebackend.client
+package com.namazed.orthobot.client
 
-import com.namazed.orthobot.client.HttpClientManager
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.features.json.GsonSerializer
