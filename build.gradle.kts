@@ -36,5 +36,3 @@ tasks.withType<KotlinCompile> {
         freeCompilerArgs += "-XXLanguage:+InlineClasses"
     }
 }
-
-//compileKotlin { kotlinOptions.freeCompilerArgs += ["-XXLanguage:+InlineClasses"] }

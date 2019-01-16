@@ -5,6 +5,7 @@ import com.namazed.orthobot.bot.model.MessageId
 import com.namazed.orthobot.bot.model.UserId
 import com.namazed.orthobot.bot.model.response.Callback
 import com.namazed.orthobot.bot.model.response.Message
+import com.namazed.orthobot.bot.model.response.isNotEmptyCallback
 import com.namazed.orthobot.bot.model.response.isNotEmptyMessage
 import com.namazed.orthobot.client.model.EMPTY_MESSAGE_FOR_EDIT
 import com.namazed.orthobot.client.model.MessageForEdit
@@ -125,7 +126,11 @@ class UpdateStateService(
         callback: Callback = Callback(),
         actions: Boolean = false
     ) {
-        insertField[timestamp] = if (isNotEmptyMessage(message)) message.timestamp else callback.timestamp
+        insertField[timestamp] = when {
+            isNotEmptyMessage(message) -> message.timestamp
+            isNotEmptyCallback(callback) -> callback.timestamp
+            else -> -1L
+        }
         insertField[dictionary] = dictionaryResult
         insertField[UpdateStates.actions] = actions
         insertField[messageSenderName] = message.sender.name
