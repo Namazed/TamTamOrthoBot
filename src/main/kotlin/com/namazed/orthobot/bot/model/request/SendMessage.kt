@@ -1,80 +1,53 @@
 package com.namazed.orthobot.bot.model.request
 
 import com.google.gson.annotations.SerializedName
-import com.namazed.orthobot.bot.Payloads
-import com.namazed.orthobot.bot.UpdateState
-import com.namazed.orthobot.client.model.Dictionary
-import com.namazed.orthobot.client.model.Main
+import com.namazed.orthobot.bot.*
 import org.slf4j.Logger
 
 class SendMessage(
-    @SerializedName("text") val text: String = "",
+    @SerializedName("text") val text: String? = null,
     @SerializedName("attachments") val attachments: List<AttachmentKeyboard> = emptyList(),
     @SerializedName("notify") val notifyUser: Boolean = true
 )
 
 fun createMessage(state: UpdateState?, log: Logger) = when (state) {
-    is UpdateState.StartState -> {
+    is StartState -> {
         log.info("createMessage: Start state")
-        SendMessage(initialText(state.message.sender.name), createAttachmentKeyboard(state))
+        SendMessage(initialText(state.message.sender.name), createListAttachmentKeyboard(state))
     }
-    is UpdateState.BackState -> {
+    is BackState -> {
         log.info("createMessage: Back state")
-        SendMessage(standardText(state.callback.user.name), createAttachmentKeyboard(state))
+        SendMessage(standardText(state.callback.user.name), createListAttachmentKeyboard(state))
     }
-    is UpdateState.OrthoState.InputText -> {
+    is OrthoState.InputText -> {
         log.info("createMessage: Ortho input text state")
-        SendMessage(inputText(), createAttachmentKeyboard(state))
+        SendMessage(inputText(), createListAttachmentKeyboard(state))
     }
-    is UpdateState.DictionaryState.InputWord -> {
+    is DictionaryState.InputWord -> {
         log.info("createMessage: Dictionary input word state")
-        SendMessage(inputWordText(), createAttachmentKeyboard(state))
+        SendMessage(inputWordText(), createListAttachmentKeyboard(state))
     }
-    is UpdateState.DictionaryState.Result -> {
+    is DictionaryState.Result -> {
         log.info("createMessage: Dictionary result state")
-        SendMessage(createDictionaryText(state.dictionary), createAttachmentKeyboard(state))
+        SendMessage(state.dictionary, createListAttachmentKeyboard(state))
     }
-    is UpdateState.TranslateState.TranslateEn -> {
+    is TranslateState.TranslateEn -> {
         log.info("createMessage: Translate on english state")
-        SendMessage(inputTranslateText("английский"), createAttachmentKeyboard(state))
+        SendMessage(inputTranslateText("английский"), createListAttachmentKeyboard(state))
     }
-    is UpdateState.TranslateState.TranslateRu -> {
+    is TranslateState.TranslateRu -> {
         log.info("createMessage: Translate on russian state")
-        SendMessage(inputTranslateText("русский"), createAttachmentKeyboard(state))
+        SendMessage(inputTranslateText("русский"), createListAttachmentKeyboard(state))
     }
-    is UpdateState.TranslateState.Result -> {
+    is TranslateState.Result -> {
         log.info("createMessage: Translate result state")
-        SendMessage(state.translateResult.text[0], createAttachmentKeyboard(state))
+        SendMessage(state.translateResult.text[0], createListAttachmentKeyboard(state))
+    }
+    is ClearState -> {
+        log.info("createMessage: Clear state")
+        SendMessage(state.messageText)
     }
     else -> SendMessage()
-}
-
-fun createDictionaryText(dictionary: Dictionary): String {
-    val stringBuilder = StringBuilder()
-    dictionary.def[0].main.asIterable().mapIndexed { index, mainInfo: Main ->
-        if (index == 0) {
-            stringBuilder.append("Значение: [ ${mainInfo.text} ]")
-        } else {
-            stringBuilder.append("\nЗначение: [ ${mainInfo.text} ]")
-        }
-        if (mainInfo.synonyms.isNotEmpty()) {
-            stringBuilder.append("\nСинонимы:\n")
-            stringBuilder.append("[ ")
-        }
-        mainInfo.synonyms.asIterable().mapIndexed { synIndex, synonym ->
-            stringBuilder.append(synonym.text)
-            if (synIndex < mainInfo.synonyms.size - 1) {
-                stringBuilder.append(", ")
-            }
-            synonym
-        }
-        if (mainInfo.synonyms.isNotEmpty()) {
-            stringBuilder.append(" ]\n")
-        }
-        mainInfo
-    }
-
-    return stringBuilder.toString()
 }
 
 fun initialText(name: String): String {
@@ -112,18 +85,25 @@ fun standardText(name: String): String {
     """.trimMargin()
 }
 
-fun createAttachmentKeyboard(state: UpdateState) = listOf(
-    AttachmentKeyboard(
+fun createListAttachmentKeyboard(state: UpdateState): List<AttachmentKeyboard> {
+    if (state is TranslateState.Result || state is DictionaryState.Result || state is OrthoState.Result) {
+        return emptyList()
+    }
+
+    return listOf(createAttachmentKeyboard(state))
+}
+
+private fun createAttachmentKeyboard(state: UpdateState): AttachmentKeyboard {
+    return AttachmentKeyboard(
         AttachType.INLINE_KEYBOARD.value.toLowerCase(),
         when (state) {
-            is UpdateState.OrthoState.InputText -> createInlineKeyboardWithBackButton()
-            is UpdateState.DictionaryState.InputWord -> createInlineKeyboardWithBackButton()
-            is UpdateState.TranslateState.TranslateEn -> createInlineKeyboardWithBackButton()
-            is UpdateState.TranslateState.TranslateRu -> createInlineKeyboardWithBackButton()
+            is OrthoState.InputText, is DictionaryState.InputWord,
+            is TranslateState.TranslateEn, is TranslateState.TranslateRu ->
+                createInlineKeyboardWithBackButton()
             else -> createStandardInlineKeyboard()
         }
     )
-)
+}
 
 private fun createStandardInlineKeyboard() = InlineKeyboard(
     listOf(

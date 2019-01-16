@@ -36,3 +36,31 @@ class Mean(
 class Synonym(
     @SerializedName("text") val text: String
 )
+
+fun createDictionaryText(dictionary: Dictionary): String {
+    val stringBuilder = StringBuilder()
+    dictionary.def[0].main.asIterable().mapIndexed { index, mainInfo: Main ->
+        if (index == 0) {
+            stringBuilder.append("Значение: [ ${mainInfo.text} ]")
+        } else {
+            stringBuilder.append("\nЗначение: [ ${mainInfo.text} ]")
+        }
+        if (mainInfo.synonyms.isNotEmpty()) {
+            stringBuilder.append("\nСинонимы:\n")
+            stringBuilder.append("[ ")
+        }
+        mainInfo.synonyms.asIterable().mapIndexed { synIndex, synonym ->
+            stringBuilder.append(synonym.text)
+            if (synIndex < mainInfo.synonyms.size - 1) {
+                stringBuilder.append(", ")
+            }
+            synonym
+        }
+        if (mainInfo.synonyms.isNotEmpty()) {
+            stringBuilder.append(" ]\n")
+        }
+        mainInfo
+    }
+
+    return stringBuilder.toString()
+}

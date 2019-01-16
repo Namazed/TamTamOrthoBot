@@ -5,11 +5,13 @@ import com.namazed.orthobot.bot.BotHttpClientManager
 import com.namazed.orthobot.bot.CommandParser
 import com.namazed.orthobot.bot.botModule
 import com.namazed.orthobot.bot.model.CallbackId
+import com.namazed.orthobot.bot.model.MessageId
 import com.namazed.orthobot.bot.model.UserId
 import com.namazed.orthobot.bot.model.request.AnswerCallback
 import com.namazed.orthobot.bot.model.request.SendMessage
 import com.namazed.orthobot.bot.model.response.Updates
 import com.namazed.orthobot.client.clientModule
+import com.namazed.orthobot.db.databaseModule
 import io.ktor.application.Application
 import io.ktor.application.install
 import io.ktor.application.log
@@ -23,7 +25,7 @@ import org.koin.standalone.StandAloneContext.startKoin
 import org.slf4j.Logger
 
 fun Application.main() {
-    startKoin(listOf(serverModule, clientModule, botModule))
+    startKoin(listOf(serverModule, clientModule, botModule, databaseModule))
     setProperty("LOGGER", log)
     val botHttpClientManager: BotHttpClientManager by inject()
     val commandParser: CommandParser by inject()
@@ -52,6 +54,9 @@ fun startLongPolling(httpClientManager: BotHttpClientManager, commandParser: Com
                 }, { callbackId: CallbackId, answerCallback: AnswerCallback ->
                     log.info("Answer on callback")
                     httpClientManager.answerOnCallback(callbackId, answerCallback)
+                }, { messageId: MessageId, sendMessage: SendMessage ->
+                    log.info("Clear last message with buttons, messageId = ${messageId.id}")
+                    httpClientManager.editMessage(messageId, sendMessage)
                 })
             } catch (e: Exception) {
                 log.error("Exception when processUpdate", e)

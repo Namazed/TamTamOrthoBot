@@ -2,20 +2,21 @@ package com.namazed.orthobot.bot
 
 import com.namazed.orthobot.ApiKeys
 import com.namazed.orthobot.bot.model.CallbackId
-import com.namazed.orthobot.bot.model.response.BotInfo
 import com.namazed.orthobot.bot.model.ChatId
-import com.namazed.orthobot.bot.model.response.Updates
+import com.namazed.orthobot.bot.model.MessageId
 import com.namazed.orthobot.bot.model.UserId
-import com.namazed.orthobot.bot.model.request.AnswerCallback as RequestAnswerCallback
-import com.namazed.orthobot.bot.model.response.AnswerCallback as ResponseAnswerCallback
-import com.namazed.orthobot.bot.model.response.SendMessage as ResponseSendMessage
-import com.namazed.orthobot.bot.model.request.SendMessage as RequestSendMessage
+import com.namazed.orthobot.bot.model.response.BotInfo
+import com.namazed.orthobot.bot.model.response.Updates
 import io.ktor.client.HttpClient
 import io.ktor.client.request.*
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import java.net.URL
 import kotlin.coroutines.CoroutineContext
+import com.namazed.orthobot.bot.model.request.AnswerCallback as RequestAnswerCallback
+import com.namazed.orthobot.bot.model.request.SendMessage as RequestSendMessage
+import com.namazed.orthobot.bot.model.response.AnswerCallback as ResponseAnswerCallback
+import com.namazed.orthobot.bot.model.response.SendMessage as ResponseSendMessage
 
 class BotHttpClientManager(
     private val httpClient: HttpClient,
@@ -48,6 +49,14 @@ class BotHttpClientManager(
         parameter("access_token", apiKeys.botApi)
         parameter("chat_id", chatId.id)
         contentType(ContentType.parse("application/json"))
+    }
+
+    suspend fun editMessage(messageId: MessageId, sendMessage: RequestSendMessage) = httpClient.put<ResponseAnswerCallback> {
+        url(URL("$botEndpoint/messages"))
+        parameter("access_token", apiKeys.botApi)
+        parameter("message_id", messageId.id)
+        contentType(ContentType.parse("application/json"))
+        body = sendMessage
     }
 
     suspend fun answerOnCallback(callbackId: CallbackId, answerCallback: RequestAnswerCallback) = httpClient.post<ResponseAnswerCallback> {

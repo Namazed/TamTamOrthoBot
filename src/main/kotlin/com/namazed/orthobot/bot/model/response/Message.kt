@@ -22,8 +22,8 @@ class Recipient(
 )
 
 class Sender(
-    @SerializedName("name") val name: String = "",
-    @SerializedName("user_id") val userId: Long = -1
+    @SerializedName("user_id") val userId: Long = -1,
+    @SerializedName("name") val name: String = ""
 )
 
-fun isNotEmptyMessage(message: Message?) = message != null && message != EMPTY_MESSAGE
+fun isNotEmptyMessage(message: Message?) = message != null && message.timestamp != -1L

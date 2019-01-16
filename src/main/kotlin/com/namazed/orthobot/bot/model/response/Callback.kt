@@ -16,4 +16,5 @@ class User(
     @SerializedName("name") val name: String = ""
 )
 
-fun isNotEmptyCallback(callback: Callback?) = callback != null && callback != EMPTY_CALLBACK
+fun isNotEmptyCallback(callback: Callback?) =
+    callback != null && callback.timestamp != -1L
