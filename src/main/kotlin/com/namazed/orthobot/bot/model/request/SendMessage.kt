@@ -13,7 +13,7 @@ class SendMessage(
 fun createMessage(state: UpdateState?, log: Logger) = when (state) {
     is StartState -> {
         log.info("createMessage: Start state")
-        SendMessage(initialText(state.message.sender.name), createListAttachmentKeyboard(state))
+        SendMessage(if (state.actions) standardText(state.message.sender.name) else initialText(state.message.sender.name), createListAttachmentKeyboard(state))
     }
     is BackState -> {
         log.info("createMessage: Back state")
@@ -59,19 +59,13 @@ fun initialText(name: String): String {
     """.trimMargin()
 }
 
-fun resultText(name: String): String {
-    return """Спасибо, $name, что воспользовались моими услугами, с вас 0 руб.
-        |Хотите повторить?
-    """.trimMargin()
-}
-
 fun inputText(): String {
     return """Введите, пожалуйста, текст который хотите проверить.
     """.trimMargin()
 }
 
 fun inputWordText(): String {
-    return """Введите, пожалуйста, слово для которого вы хотите получит значение.
+    return """Введите, пожалуйста, слово для которого вы хотите получить значение.
     """.trimMargin()
 }
 

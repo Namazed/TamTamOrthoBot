@@ -14,6 +14,7 @@ import com.namazed.orthobot.db.mapping.mappingMessageForEdit
 import com.namazed.orthobot.db.mapping.messageMapping
 import com.namazed.orthobot.db.model.MessagesForEdit
 import com.namazed.orthobot.db.model.UpdateStates
+import com.namazed.orthobot.db.model.UpdateStates.actions
 import com.namazed.orthobot.db.model.UpdateStates.callbackId
 import com.namazed.orthobot.db.model.UpdateStates.callbackPayload
 import com.namazed.orthobot.db.model.UpdateStates.callbackUserId
@@ -81,7 +82,7 @@ class UpdateStateService(
         UpdateStates.insert {
             it[userId] = updateState.updateStateId.id
             when (updateState) {
-                is StartState -> insertState(it, UpdateTypes.START, updateState.message)
+                is StartState -> insertState(it, UpdateTypes.START, updateState.message, actions = updateState.actions)
                 is BackState -> insertState(it, UpdateTypes.BACK, callback = updateState.callback)
                 is DictionaryState.InputWord -> insertState(
                     it,
@@ -121,10 +122,12 @@ class UpdateStateService(
         message: Message = Message(),
         dictionaryResult: String = "",
         translateResult: TranslateResult = TranslateResult(),
-        callback: Callback = Callback()
+        callback: Callback = Callback(),
+        actions: Boolean = false
     ) {
         insertField[timestamp] = if (isNotEmptyMessage(message)) message.timestamp else callback.timestamp
         insertField[dictionary] = dictionaryResult
+        insertField[UpdateStates.actions] = actions
         insertField[messageSenderName] = message.sender.name
         insertField[messageSenderId] = message.sender.userId
         insertField[messageRecipientChatId] = message.recipient.chatId
@@ -146,7 +149,7 @@ class UpdateStateService(
     }
 
     private fun mapping(row: ResultRow) = when (row[UpdateStates.updateTypes]) {
-        UpdateTypes.START -> StartState(UserId(row[UpdateStates.userId]), messageMapping(row))
+        UpdateTypes.START -> StartState(UserId(row[UpdateStates.userId]), messageMapping(row), row[UpdateStates.actions])
         UpdateTypes.BACK -> BackState(UserId(row[UpdateStates.userId]), callbackMapping(row))
         UpdateTypes.DICTIONARY_INPUT -> DictionaryState.InputWord(
             UserId(row[UpdateStates.userId]),

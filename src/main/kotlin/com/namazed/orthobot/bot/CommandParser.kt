@@ -17,11 +17,13 @@ import com.namazed.orthobot.bot.model.response.SendMessage as ResponseSendMessag
 
 private val PROFILE_TAG_PATTERN = Regex("@([A-Za-z0-9_-]+)")
 private val START_COMMAND_PATTERN = Regex("(?i)/start")
+private val ACTIONS_COMMAND_PATTERN = Regex("(?i)/actions")
 private val ORTHO_COMMAND_PATTERN = Regex("(?i)/ortho")
 private val DICTIONARY_COMMAND_PATTERN = Regex("(?i)/dictionary")
 private val BOTS_COMMAND_PATTERN = Regex("/[\\p{L}\\p{N}_]+($PROFILE_TAG_PATTERN)?")
 
 fun isStartCommand(text: String) = START_COMMAND_PATTERN.matches(text)
+fun isActionsCommand(text: String) = ACTIONS_COMMAND_PATTERN.matches(text)
 fun isOrthoCommand(text: String) = ORTHO_COMMAND_PATTERN.matches(text)
 fun isDictionaryCommand(text: String) = DICTIONARY_COMMAND_PATTERN.matches(text)
 
@@ -41,6 +43,9 @@ class CommandParser(val clientManager: HttpClientManager, val updateStateService
             when {
                 isNotEmptyMessage(it.message) && isStartCommand(it.message.messageInfo.text) ->
                     handleStartCommand(it, sendMessageRequest, userUpdateState)
+
+                isNotEmptyMessage(it.message) && isActionsCommand(it.message.messageInfo.text) ->
+                    handleActionsCommand(it, sendMessageRequest, userUpdateState)
 
                 isNotEmptyCallback(it.callback) && it.callback.payload == Payloads.ORTHO_INPUT ->
                     handleStartOrtho(it, answerRequest, userUpdateState)
@@ -74,6 +79,22 @@ class CommandParser(val clientManager: HttpClientManager, val updateStateService
         log.info("processUpdates -> handleStartCommand")
         val userId = UserId(update.message.sender.userId)
         updateStateService.updateState(userUpdateState.updateStateId, StartState(userId, update.message))
+        val createdMessage = createMessage(updateStateService.selectState(userId), log)
+        val resultMessageInfo = sendMessageRequest(
+            userId,
+            createdMessage
+        )
+        updateStateService.updateMessageForEdit(userId, MessageId(resultMessageInfo.messageId), createdMessage.text)
+    }
+
+    suspend inline fun handleActionsCommand(
+        update: Update,
+        sendMessageRequest: (UserId, RequestSendMessage) -> ResponseSendMessage,
+        userUpdateState: UpdateState
+    ) {
+        log.info("processUpdates -> handleActionsCommand")
+        val userId = UserId(update.message.sender.userId)
+        updateStateService.updateState(userUpdateState.updateStateId, StartState(userId, update.message, true))
         val createdMessage = createMessage(updateStateService.selectState(userId), log)
         val resultMessageInfo = sendMessageRequest(
             userId,

@@ -10,7 +10,7 @@ sealed class UpdateState(val updateStateId: UserId)
 
 class Unknown : UpdateState(UserId(-1))
 
-class StartState(val userId: UserId, val message: Message) : UpdateState(userId)
+class StartState(val userId: UserId, val message: Message, val actions: Boolean = false) : UpdateState(userId)
 
 class BackState(val userId: UserId, val callback: Callback) : UpdateState(userId)
 

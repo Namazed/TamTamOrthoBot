@@ -7,6 +7,7 @@ object UpdateStates : IntIdTable() {
     val userId = long("userId")
     val timestamp = long("timestamp")
     val dictionary = text("dictionary")
+    val actions = bool("actions")
     val callbackId = text("callbackId")
     val callbackUserId = long("callbackUserId")
     val callbackUserName = text("callbackUserName")
