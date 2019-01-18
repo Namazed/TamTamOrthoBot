@@ -10,12 +10,11 @@ import com.namazed.orthobot.bot.model.response.isNotEmptyMessage
 import com.namazed.orthobot.client.model.EMPTY_MESSAGE_FOR_EDIT
 import com.namazed.orthobot.client.model.MessageForEdit
 import com.namazed.orthobot.client.model.TranslateResult
-import com.namazed.orthobot.db.mapping.callbackMapping
+import com.namazed.orthobot.db.mapping.getDefaultState
 import com.namazed.orthobot.db.mapping.mappingMessageForEdit
-import com.namazed.orthobot.db.mapping.messageMapping
+import com.namazed.orthobot.db.mapping.updateStateMapping
 import com.namazed.orthobot.db.model.MessagesForEdit
 import com.namazed.orthobot.db.model.UpdateStates
-import com.namazed.orthobot.db.model.UpdateStates.actions
 import com.namazed.orthobot.db.model.UpdateStates.callbackId
 import com.namazed.orthobot.db.model.UpdateStates.callbackPayload
 import com.namazed.orthobot.db.model.UpdateStates.callbackUserId
@@ -33,8 +32,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.statements.InsertStatement
+import org.jetbrains.exposed.sql.update
 import kotlin.coroutines.CoroutineContext
 
 class UpdateStateService(
@@ -85,34 +87,12 @@ class UpdateStateService(
             when (updateState) {
                 is StartState -> insertState(it, UpdateTypes.START, updateState.message, actions = updateState.actions)
                 is BackState -> insertState(it, UpdateTypes.BACK, callback = updateState.callback)
-                is DictionaryState.InputWord -> insertState(
-                    it,
-                    UpdateTypes.DICTIONARY_INPUT,
-                    callback = updateState.callback
-                )
-                is DictionaryState.Result -> insertState(
-                    it,
-                    UpdateTypes.DICTIONARY_RESULT,
-                    updateState.message,
-                    updateState.dictionary
-                )
-                is TranslateState.TranslateEn -> insertState(
-                    it,
-                    UpdateTypes.TRANSLATE_EN,
-                    callback = updateState.callback
-                )
-                is TranslateState.TranslateRu -> insertState(
-                    it,
-                    UpdateTypes.TRANSLATE_RU,
-                    callback = updateState.callback
-                )
+                is DictionaryState.InputWord -> insertState(it, UpdateTypes.DICTIONARY_INPUT, callback = updateState.callback)
+                is DictionaryState.Result -> insertState(it, UpdateTypes.DICTIONARY_RESULT, updateState.message, updateState.dictionary)
+                is TranslateState.TranslateEn -> insertState(it, UpdateTypes.TRANSLATE_EN, callback = updateState.callback)
+                is TranslateState.TranslateRu -> insertState(it, UpdateTypes.TRANSLATE_RU, callback = updateState.callback)
                 is TranslateState.Result ->
-                    insertState(
-                        it,
-                        UpdateTypes.TRANSLATE_RESULT,
-                        updateState.message,
-                        translateResult = updateState.translateResult
-                    )
+                    insertState(it, UpdateTypes.TRANSLATE_RESULT, updateState.message, translateResult = updateState.translateResult)
             }
         }
     }
@@ -149,40 +129,7 @@ class UpdateStateService(
     suspend fun selectState(userId: UserId) = databaseManager.query {
         UpdateStates.select {
             (UpdateStates.userId eq userId.id)
-        }.asSequence().mapNotNull { mapping(it) }.ifEmpty { listOf(StartState(UserId(-1), Message())).asSequence() }
-            .single()
-    }
-
-    private fun mapping(row: ResultRow) = when (row[UpdateStates.updateTypes]) {
-        UpdateTypes.START -> StartState(UserId(row[UpdateStates.userId]), messageMapping(row), row[UpdateStates.actions])
-        UpdateTypes.BACK -> BackState(UserId(row[UpdateStates.userId]), callbackMapping(row))
-        UpdateTypes.DICTIONARY_INPUT -> DictionaryState.InputWord(
-            UserId(row[UpdateStates.userId]),
-            callbackMapping(row)
-        )
-        UpdateTypes.DICTIONARY_RESULT -> DictionaryState.Result(
-            UserId(row[UpdateStates.userId]),
-            message = messageMapping(row),
-            dictionary = row[UpdateStates.dictionary]
-        )
-        UpdateTypes.TRANSLATE_EN -> TranslateState.TranslateEn(
-            UserId(row[UpdateStates.userId]),
-            callbackMapping(row)
-        )
-        UpdateTypes.TRANSLATE_RU -> TranslateState.TranslateRu(
-            UserId(row[UpdateStates.userId]),
-            callbackMapping(row)
-        )
-        UpdateTypes.TRANSLATE_RESULT -> TranslateState.Result(
-            UserId(row[UpdateStates.userId]),
-            message = messageMapping(row),
-            translateResult = TranslateResult(
-                200,
-                row[UpdateStates.translationResultLang],
-                listOf(row[UpdateStates.translationResultText])
-            )
-        )
-        else -> Unknown()
+        }.asSequence().mapNotNull { updateStateMapping(it) }.ifEmpty { getDefaultState() }.single()
     }
 
 }

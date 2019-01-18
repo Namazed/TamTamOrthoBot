@@ -4,7 +4,7 @@ import com.namazed.orthobot.bot.model.MessageId
 import com.namazed.orthobot.bot.model.response.Message
 import com.namazed.orthobot.bot.model.response.MessageInfo
 import com.namazed.orthobot.bot.model.response.Recipient
-import com.namazed.orthobot.bot.model.response.Sender
+import com.namazed.orthobot.bot.model.response.User
 import com.namazed.orthobot.client.model.MessageForEdit
 import com.namazed.orthobot.db.model.MessagesForEdit
 import com.namazed.orthobot.db.model.UpdateStates
@@ -21,4 +21,4 @@ private fun messageInfoMapping(row: ResultRow): MessageInfo {
 
 private fun recipientMapping(row: ResultRow) = Recipient(row[UpdateStates.messageRecipientChatId])
 
-private fun senderMapping(row: ResultRow) = Sender(row[UpdateStates.messageSenderId], row[UpdateStates.messageSenderName])
+private fun senderMapping(row: ResultRow) = User(row[UpdateStates.messageSenderId], row[UpdateStates.messageSenderName])

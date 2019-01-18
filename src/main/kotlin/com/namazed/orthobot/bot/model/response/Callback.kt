@@ -11,10 +11,5 @@ class Callback(
     @SerializedName("user") val user: User = User()
 )
 
-class User(
-    @SerializedName("user_id") val userId: Long = -1,
-    @SerializedName("name") val name: String = ""
-)
-
 fun isNotEmptyCallback(callback: Callback?) =
     callback != null && callback.timestamp != -1L

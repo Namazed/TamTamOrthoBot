@@ -7,7 +7,7 @@ val EMPTY_MESSAGE = Message()
 class Message(
     @SerializedName("message") val messageInfo: MessageInfo = MessageInfo(),
     @SerializedName("recipient") val recipient: Recipient = Recipient(),
-    @SerializedName("sender") val sender: Sender = Sender(),
+    @SerializedName("sender") val sender: User = User(),
     @SerializedName("timestamp") val timestamp: Long = -1
 )
 
@@ -19,11 +19,6 @@ class MessageInfo(
 
 class Recipient(
     @SerializedName("chat_id") val chatId: Long = -1
-)
-
-class Sender(
-    @SerializedName("user_id") val userId: Long = -1,
-    @SerializedName("name") val name: String = ""
 )
 
 fun isNotEmptyMessage(message: Message?) = message != null && message.timestamp != -1L
