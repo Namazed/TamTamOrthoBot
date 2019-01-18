@@ -20,8 +20,7 @@ import com.namazed.orthobot.bot.model.response.SendMessage as ResponseSendMessag
 
 class BotHttpClientManager(
     private val httpClient: HttpClient,
-    private val apiKeys: ApiKeys,
-    val clientDispatcher: CoroutineContext
+    private val apiKeys: ApiKeys
 ) {
 
     private val botEndpoint = "https://test2.tamtam.chat"

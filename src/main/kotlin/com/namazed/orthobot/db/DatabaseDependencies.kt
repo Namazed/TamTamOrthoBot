@@ -22,7 +22,7 @@ val databaseModule = module {
 private fun createHikariDataSource(): HikariDataSource {
     val config = HikariConfig().apply {
         driverClassName = "org.h2.Driver"
-        jdbcUrl = "jdbc:h2:mem:test"
+        jdbcUrl = "jdbc:h2:~/db"
         maximumPoolSize = 3
         isAutoCommit = false
         transactionIsolation = "TRANSACTION_REPEATABLE_READ"

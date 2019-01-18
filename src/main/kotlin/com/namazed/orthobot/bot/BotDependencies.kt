@@ -9,8 +9,8 @@ import org.koin.dsl.module.module
 
 val botModule = module {
     factory(name = "BotClient") { createBotHttpClient() }
-    factory { CommandParser(get(), get(), getProperty("LOGGER")) }
-    single { BotHttpClientManager(get(name = "BotClient"), get(), get("clientDispatcher")) }
+    factory { UpdateParser(get(), get(), getProperty("LOGGER")) }
+    single { BotHttpClientManager(get(name = "BotClient"), get()) }
 }
 
 fun createBotHttpClient(): HttpClient = HttpClient(OkHttp) {
