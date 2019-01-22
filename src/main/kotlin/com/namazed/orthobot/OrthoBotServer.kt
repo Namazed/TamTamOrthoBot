@@ -34,7 +34,7 @@ fun Application.main() {
     startLongPolling(botHttpClientManager, commandParser, log)
 }
 
-fun startLongPolling(httpClientManager: BotHttpClientManager, commandParser: UpdateParser, log: Logger) {
+fun startLongPolling(httpClientManager: BotHttpClientManager, updateParser: UpdateParser, log: Logger) {
     GlobalScope.launch {
         while (true) {
             val updates: Updates
@@ -45,7 +45,7 @@ fun startLongPolling(httpClientManager: BotHttpClientManager, commandParser: Upd
                 continue
             }
             try {
-                commandParser.processUpdates(updates, { userId: UserId, sendMessage: SendMessage ->
+                updateParser.processUpdates(updates, { userId: UserId, sendMessage: SendMessage ->
                     log.info("Send message")
                     httpClientManager.sendMessage(userId, sendMessage)
                 }, { callbackId: CallbackId, answerCallback: AnswerCallback ->
