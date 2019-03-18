@@ -1,0 +1,54 @@
+package com.namazed.orthobot.bot.model
+
+import chat.tamtam.botsdk.keyboard.keyboard
+import chat.tamtam.botsdk.model.Button
+import chat.tamtam.botsdk.model.ButtonType
+import com.namazed.orthobot.bot.Payloads
+
+
+fun initialText(name: String): String {
+    return """Приветствую тебя, $name.
+        |Похоже у тебя серьезные проблемы, раз ты обратился ко мне.
+        |МОЯ МОЩЬ БЕЗМЕРНА!
+        |Но ты пока потыкай эти кнопки, потренируйся.
+        |И не пытайся оживлять мертвых с помощью моей силы, сгоришь в аду за это!
+    """.trimMargin()
+}
+
+fun inputText(): String {
+    return """Введите, пожалуйста, текст который хотите проверить.
+    """.trimMargin()
+}
+
+fun inputWordText(): String {
+    return """Введите, пожалуйста, слово для которого вы хотите получить значение.
+    """.trimMargin()
+}
+
+fun inputTranslateText(lang: String): String {
+    return """Введите, пожалуйста, текст который хотите перевести на $lang.
+    """.trimMargin()
+}
+
+fun standardText(name: String): String {
+    return """Выбор за тобой, $name.
+    """.trimMargin()
+}
+
+fun createAllActionsInlineKeyboard() = keyboard {
+    +buttonRow {
+        +Button(chat.tamtam.botsdk.model.ButtonType.CALLBACK.value, "Значение слова", payload = Payloads.DICTIONARY_INPUT)
+        +Button(chat.tamtam.botsdk.model.ButtonType.CALLBACK.value, "Проверка орфографии", payload = Payloads.ORTHO_INPUT)
+    }
+    +buttonRow {
+        +Button(chat.tamtam.botsdk.model.ButtonType.CALLBACK.value, "Перевести на En", payload = Payloads.TRANSLATE_EN)
+        +Button(chat.tamtam.botsdk.model.ButtonType.CALLBACK.value, "Перевести на Ru", payload = Payloads.TRANSLATE_RU)
+
+    }
+}
+
+fun createBackButtonInlineKeyboard() = keyboard {
+    +buttonRow {
+        +Button(ButtonType.CALLBACK.value, "Вернуться", payload = Payloads.BACK)
+    }
+}

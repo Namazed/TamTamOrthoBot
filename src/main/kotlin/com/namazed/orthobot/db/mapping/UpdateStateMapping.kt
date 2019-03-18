@@ -1,8 +1,8 @@
 package com.namazed.orthobot.db.mapping
 
+import chat.tamtam.botsdk.model.UserId
+import chat.tamtam.botsdk.model.response.Message
 import com.namazed.orthobot.bot.*
-import com.namazed.orthobot.bot.model.UserId
-import com.namazed.orthobot.bot.model.response.Message
 import com.namazed.orthobot.client.model.TranslateResult
 import com.namazed.orthobot.db.UpdateTypes
 import com.namazed.orthobot.db.model.UpdateStates

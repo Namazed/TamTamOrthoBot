@@ -1,7 +1,7 @@
 package com.namazed.orthobot.db.mapping
 
-import com.namazed.orthobot.bot.model.response.Callback
-import com.namazed.orthobot.bot.model.response.User
+import chat.tamtam.botsdk.model.response.Callback
+import chat.tamtam.botsdk.model.response.User
 import com.namazed.orthobot.db.model.UpdateStates
 import org.jetbrains.exposed.sql.ResultRow
 

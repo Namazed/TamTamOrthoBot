@@ -1,19 +1,12 @@
 package com.namazed.orthobot.db
 
+import chat.tamtam.botsdk.model.UserId
+import chat.tamtam.botsdk.model.response.Callback
+import chat.tamtam.botsdk.model.response.Message
 import com.namazed.orthobot.bot.*
-import com.namazed.orthobot.bot.model.MessageId
-import com.namazed.orthobot.bot.model.UserId
-import com.namazed.orthobot.bot.model.response.Callback
-import com.namazed.orthobot.bot.model.response.Message
-import com.namazed.orthobot.bot.model.response.isNotEmptyCallback
-import com.namazed.orthobot.bot.model.response.isNotEmptyMessage
-import com.namazed.orthobot.client.model.EMPTY_MESSAGE_FOR_EDIT
-import com.namazed.orthobot.client.model.MessageForEdit
 import com.namazed.orthobot.client.model.TranslateResult
 import com.namazed.orthobot.db.mapping.getDefaultState
-import com.namazed.orthobot.db.mapping.mappingMessageForEdit
 import com.namazed.orthobot.db.mapping.updateStateMapping
-import com.namazed.orthobot.db.model.MessagesForEdit
 import com.namazed.orthobot.db.model.UpdateStates
 import com.namazed.orthobot.db.model.UpdateStates.callbackId
 import com.namazed.orthobot.db.model.UpdateStates.callbackPayload
@@ -36,50 +29,21 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.statements.InsertStatement
-import org.jetbrains.exposed.sql.update
 import kotlin.coroutines.CoroutineContext
 
 class UpdateStateService(
     private val databaseManager: DatabaseManager,
     val parentJob: Job,
-    override val coroutineContext: CoroutineContext = SupervisorJob(parentJob) + Dispatchers.Default
+    override val coroutineContext: CoroutineContext = SupervisorJob(parentJob) + Dispatchers.IO
 ) : CoroutineScope {
 
-    suspend fun updateState(userId: UserId, updateState: UpdateState) {
+    suspend fun updateState(userId: UserId, updateState: UpdateState): UpdateState {
         databaseManager.query {
             UpdateStates.deleteWhere { UpdateStates.userId eq userId.id }
             insertUpdateStates(updateState)
         }
+        return selectState(userId)
     }
-
-    suspend fun updateMessageForEdit(userId: UserId, messageId: MessageId, text: String?) {
-        databaseManager.query {
-            MessagesForEdit.deleteWhere { MessagesForEdit.userId eq userId.id }
-            MessagesForEdit.insert {
-                it[this.userId] = userId.id
-                it[this.messageId] = messageId.id
-                it[this.messageText] = text?.let { text: String -> text } ?: ""
-            }
-        }
-    }
-
-    suspend fun updateTextMessageForEdit(userId: UserId, text: String?) {
-        databaseManager.query {
-            MessagesForEdit.update({ MessagesForEdit.userId eq userId.id }) {
-                it[this.messageText] = text?.let { text: String -> text } ?: ""
-            }
-        }
-    }
-
-    suspend fun selectMessageForEdit(userId: UserId): MessageForEdit = databaseManager.query {
-        MessagesForEdit.select {
-            MessagesForEdit.userId eq userId.id
-        }.asSequence()
-            .mapNotNull { mappingMessageForEdit(it) }
-            .ifEmpty { listOf(EMPTY_MESSAGE_FOR_EDIT).asSequence() }
-            .single()
-    }
-
 
     private fun insertUpdateStates(updateState: UpdateState) {
         UpdateStates.insert {
@@ -107,8 +71,8 @@ class UpdateStateService(
         actions: Boolean = false
     ) {
         insertField[timestamp] = when {
-            isNotEmptyMessage(message) -> message.timestamp
-            isNotEmptyCallback(callback) -> callback.timestamp
+            message != null && message.timestamp != -1L -> message.timestamp
+            callback != null && callback.timestamp != -1L -> callback.timestamp
             else -> -1L
         }
         insertField[dictionary] = dictionaryResult

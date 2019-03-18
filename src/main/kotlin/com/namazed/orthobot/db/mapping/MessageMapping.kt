@@ -1,10 +1,10 @@
 package com.namazed.orthobot.db.mapping
 
+import chat.tamtam.botsdk.model.response.Message
+import chat.tamtam.botsdk.model.response.MessageInfo
+import chat.tamtam.botsdk.model.response.Recipient
+import chat.tamtam.botsdk.model.response.User
 import com.namazed.orthobot.bot.model.MessageId
-import com.namazed.orthobot.bot.model.response.Message
-import com.namazed.orthobot.bot.model.response.MessageInfo
-import com.namazed.orthobot.bot.model.response.Recipient
-import com.namazed.orthobot.bot.model.response.User
 import com.namazed.orthobot.client.model.MessageForEdit
 import com.namazed.orthobot.db.model.MessagesForEdit
 import com.namazed.orthobot.db.model.UpdateStates
