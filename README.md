@@ -18,4 +18,4 @@ Work with Yandex API.
 
 ## License
 
-This project uses a license [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+This project uses a license [MIT](https://github.com/Namazed/TamTamOrthoBot/blob/master/LICENSE).
