@@ -39,6 +39,9 @@ class Synonym(
 
 fun createDictionaryText(dictionary: Dictionary): String {
     val stringBuilder = StringBuilder()
+    if (dictionary.def.isEmpty()) {
+        return "Извините я не смог найти данное слово в Яндекс словаре"
+    }
     dictionary.def[0].main.asIterable().mapIndexed { index, mainInfo: Main ->
         if (index == 0) {
             stringBuilder.append("Значение: [ ${mainInfo.text} ]")

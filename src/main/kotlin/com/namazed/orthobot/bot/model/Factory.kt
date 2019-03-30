@@ -9,9 +9,7 @@ import com.namazed.orthobot.bot.Payloads
 fun initialText(name: String): String {
     return """Приветствую тебя, $name.
         |Похоже у тебя серьезные проблемы, раз ты обратился ко мне.
-        |МОЯ МОЩЬ БЕЗМЕРНА!
-        |Но ты пока потыкай эти кнопки, потренируйся.
-        |И не пытайся оживлять мертвых с помощью моей силы, сгоришь в аду за это!
+        |Чем я могу помочь?
     """.trimMargin()
 }
 
@@ -22,6 +20,11 @@ fun inputText(): String {
 
 fun inputWordText(): String {
     return """Введите, пожалуйста, слово для которого вы хотите получить значение.
+    """.trimMargin()
+}
+
+fun inputDoesntWorkText(): String {
+    return """Извините, но в данный момент этот функционал находится на профилактике.
     """.trimMargin()
 }
 

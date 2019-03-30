@@ -13,6 +13,12 @@ import com.namazed.orthobot.client.model.createDictionaryText
 import com.namazed.orthobot.db.UpdateStateService
 import org.slf4j.Logger
 
+val YANDEX_TEXT = """
+    |
+    |Переведено сервисом «Яндекс.Переводчик»
+    |http://translate.yandex.ru/
+""".trimMargin()
+
 class MessageUpdateLogic(
     private val clientManager: HttpClientManager,
     private val updateStateService: UpdateStateService,
@@ -39,7 +45,7 @@ class MessageUpdateLogic(
             userId,
             TranslateState.Result(userId, callbackId, state.message, translateResult)
         )
-        sendFunction(translateResult.text[0])
+        sendFunction("${translateResult.text[0]}\n$YANDEX_TEXT")
         clear(CallbackId(callback.callbackId))
         typingOff(ChatId(state.message.recipient.chatId))
     }
@@ -49,7 +55,7 @@ class MessageUpdateLogic(
         callback: Callback,
         typingOn: suspend (ChatId) -> Unit,
         typingOff: suspend (ChatId) -> Unit,
-        sendFunction: suspend (String, UserId) -> ResultRequest<SendMessage>,
+        sendFunction: suspend (String) -> ResultRequest<SendMessage>,
         clear: suspend (CallbackId) -> ResultRequest<Default>
     ) {
         typingOn(ChatId(state.message.recipient.chatId))
@@ -62,7 +68,7 @@ class MessageUpdateLogic(
         val userId = UserId(state.message.sender.userId)
 
         updateStateService.updateState(userId, DictionaryState.Result(userId, callbackId, state.message, dictionary))
-        sendFunction(dictionary, userId)
+        sendFunction(dictionary)
 
         clear(callbackId)
         typingOff(ChatId(state.message.recipient.chatId))

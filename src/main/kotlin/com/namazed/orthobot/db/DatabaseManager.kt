@@ -24,9 +24,8 @@ class DatabaseManager(hikariDataSource: HikariDataSource, val dispatcher: Corout
         }
     }
 
-    suspend inline fun <T> query(crossinline block: () -> T): T =
-            withContext(dispatcher) {
-                transaction { block() }
-            }
+    suspend inline fun <T> query(crossinline block: () -> T): T = withContext(dispatcher) {
+        transaction { block() }
+    }
 
 }

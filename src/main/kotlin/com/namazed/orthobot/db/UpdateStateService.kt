@@ -51,6 +51,7 @@ class UpdateStateService(
             when (updateState) {
                 is StartState -> insertState(it, UpdateTypes.START, updateState.message, actions = updateState.actions)
                 is BackState -> insertState(it, UpdateTypes.BACK, callback = updateState.callback)
+                is OrthoState.InputText -> insertState(it, UpdateTypes.ORTHO_INPUT, callback = updateState.callback)
                 is DictionaryState.InputWord -> insertState(it, UpdateTypes.DICTIONARY_INPUT, callback = updateState.callback)
                 is DictionaryState.Result -> insertState(it, UpdateTypes.DICTIONARY_RESULT, updateState.message, updateState.dictionary)
                 is TranslateState.TranslateEn -> insertState(it, UpdateTypes.TRANSLATE_EN, callback = updateState.callback)

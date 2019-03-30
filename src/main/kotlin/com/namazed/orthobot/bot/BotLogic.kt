@@ -8,6 +8,7 @@ import chat.tamtam.botsdk.model.Payload
 import chat.tamtam.botsdk.model.UserId
 import chat.tamtam.botsdk.model.request.AnswerParams
 import chat.tamtam.botsdk.model.response.Default
+import chat.tamtam.botsdk.model.response.SendMessage
 import chat.tamtam.botsdk.scopes.CallbacksScope
 import chat.tamtam.botsdk.scopes.MessagesScope
 import com.namazed.orthobot.ApiKeys
@@ -26,26 +27,19 @@ class BotLogic(
         longPolling(apiKeys.botApi) {
 
             onStartBot {
-                //todo добавить в либу в этот стейт имя пользователя или лучше полноценный update.
-                handleCommandWithAllActions(it, updateStateService,
-                    initialText("test user")
-                )
+                handleCommandWithAllActions(it, updateStateService, initialText("Человек"))
             }
 
             commands {
 
                 onCommand("/start") {
                     log.info("onCommand /start")
-                    handleCommandWithAllActions(it, updateStateService,
-                        initialText(it.command.message.sender.name)
-                    )
+                    handleCommandWithAllActions(it, updateStateService, initialText(it.command.message.sender.name))
                 }
 
                 onCommand("/actions") {
                     log.info("onCommand /actions")
-                    handleCommandWithAllActions(it, updateStateService,
-                        standardText(it.command.message.sender.name)
-                    )
+                    handleCommandWithAllActions(it, updateStateService, standardText(it.command.message.sender.name))
                 }
 
                 onUnknownCommand {
@@ -73,11 +67,9 @@ class BotLogic(
                 UserId(it.callback.user.userId),
                 BackState(UserId(it.callback.user.userId), it.callback)
             )
-            standardText(it.callback.user.name) prepareReplacementCurrentMessage
-                    AnswerParams(
-                        CallbackId(it.callback.callbackId),
-                        UserId(-1)
-                    ) answerWith createAllActionsInlineKeyboard()
+            standardText(it.callback.user.name) prepareReplacementCurrentMessage AnswerParams(
+                CallbackId(it.callback.callbackId)
+            ) answerWith createAllActionsInlineKeyboard()
         }
 
         answerOnCallback(Payload(Payloads.DICTIONARY_INPUT)) {
@@ -85,11 +77,19 @@ class BotLogic(
                 UserId(it.callback.user.userId),
                 DictionaryState.InputWord(UserId(it.callback.user.userId), it.callback)
             )
-            inputWordText() prepareReplacementCurrentMessage
-                    AnswerParams(
-                        CallbackId(it.callback.callbackId),
-                        UserId(-1)
-                    ) answerWith createBackButtonInlineKeyboard()
+            inputWordText() prepareReplacementCurrentMessage AnswerParams(
+                CallbackId(it.callback.callbackId)
+            ) answerWith createBackButtonInlineKeyboard()
+        }
+
+        answerOnCallback(Payload(Payloads.ORTHO_INPUT)) {
+            updateStateService.updateState(
+                UserId(it.callback.user.userId),
+                OrthoState.InputText(UserId(it.callback.user.userId), it.callback)
+            )
+            inputDoesntWorkText() prepareReplacementCurrentMessage AnswerParams(
+                CallbackId(it.callback.callbackId)
+            ) answerWith createBackButtonInlineKeyboard()
         }
 
         answerOnCallback(Payload(Payloads.TRANSLATE_EN)) {
@@ -97,11 +97,9 @@ class BotLogic(
                 UserId(it.callback.user.userId),
                 TranslateState.TranslateEn(UserId(it.callback.user.userId), it.callback)
             )
-            inputTranslateText("английский") prepareReplacementCurrentMessage
-                    AnswerParams(
-                        CallbackId(it.callback.callbackId),
-                        UserId(-1)
-                    ) answerWith createBackButtonInlineKeyboard()
+            inputTranslateText("английский") prepareReplacementCurrentMessage AnswerParams(
+                CallbackId(it.callback.callbackId)
+            ) answerWith createBackButtonInlineKeyboard()
         }
 
         answerOnCallback(Payload(Payloads.TRANSLATE_RU)) {
@@ -109,11 +107,9 @@ class BotLogic(
                 UserId(it.callback.user.userId),
                 TranslateState.TranslateRu(UserId(it.callback.user.userId), it.callback)
             )
-            inputTranslateText("русский") prepareReplacementCurrentMessage
-                    AnswerParams(
-                        CallbackId(it.callback.callbackId),
-                        UserId(-1)
-                    ) answerWith createBackButtonInlineKeyboard()
+            inputTranslateText("русский") prepareReplacementCurrentMessage AnswerParams(
+                CallbackId(it.callback.callbackId)
+            ) answerWith createBackButtonInlineKeyboard()
         }
     }
 
@@ -122,24 +118,39 @@ class BotLogic(
             val updateState = updateStateService.selectState(UserId(it.message.sender.userId))
             val startTyping: suspend (ChatId) -> Unit = { id -> typingOn(id) }
             val stopTyping: suspend (ChatId) -> Unit = { id -> typingOff(id) }
+            val sendFunction: suspend (String) -> ResultRequest<SendMessage> =
+                { text -> text sendFor UserId(it.message.sender.userId) }
             val clearKeyboard: suspend (CallbackId) -> ResultRequest<Default> = { id -> "" answerFor id }
             when (updateState) {
-                is TranslateState.TranslateEn ->
-                    messageUpdateLogic.translate("en", it, updateState.callback, startTyping, stopTyping,
-                        { text -> text prepareFor UserId(it.message.sender.userId) sendWith chat.tamtam.botsdk.model.request.EMPTY_INLINE_KEYBOARD },
-                        clearKeyboard)
-                is TranslateState.TranslateRu ->
-                    messageUpdateLogic.translate("ru", it, updateState.callback, startTyping, stopTyping,
-                        { text -> sendText(text, UserId(it.message.sender.userId)) }, clearKeyboard)
-                is DictionaryState.InputWord ->
-                    messageUpdateLogic.processInputWord(it, updateState.callback, startTyping, stopTyping,
-                        { text, userId -> sendText(text, userId) }, clearKeyboard)
+                is TranslateState.TranslateEn -> messageUpdateLogic.translate(
+                    "en",
+                    it,
+                    updateState.callback,
+                    startTyping,
+                    stopTyping,
+                    sendFunction,
+                    clearKeyboard
+                )
+                is TranslateState.TranslateRu -> messageUpdateLogic.translate(
+                    "ru",
+                    it,
+                    updateState.callback,
+                    startTyping,
+                    stopTyping,
+                    sendFunction,
+                    clearKeyboard
+                )
+                is DictionaryState.InputWord -> messageUpdateLogic.processInputWord(
+                    it,
+                    updateState.callback,
+                    startTyping,
+                    stopTyping,
+                    sendFunction,
+                    clearKeyboard
+                )
             }
         }
 
     }
-
-    private suspend fun MessagesScope.sendText(text: String, userId: UserId) =
-        text prepareFor userId sendWith chat.tamtam.botsdk.model.request.EMPTY_INLINE_KEYBOARD
 
 }
