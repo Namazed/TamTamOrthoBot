@@ -5,7 +5,7 @@ import java.net.URI
 import kotlin.collections.setOf
 
 plugins {
-    kotlin("jvm") version "1.3.11"
+    kotlin("jvm") version "1.3.30"
     id("com.github.johnrengelman.shadow") version "2.0.4"
     application
 }
@@ -36,7 +36,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed:0.11.2")
     implementation("com.zaxxer:HikariCP:2.7.8")
     implementation("com.squareup.okhttp3:logging-interceptor:3.12.0")
-    implementation("com.github.Namazed:TamTamBotApiClientDsl:0.1.0")
+    implementation("com.github.Namazed:TamTamBotApiClientDsl:0.2.2")
 }
 
 tasks.withType<KotlinCompile> {

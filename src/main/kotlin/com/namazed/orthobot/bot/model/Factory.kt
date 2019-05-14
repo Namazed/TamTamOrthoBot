@@ -40,18 +40,18 @@ fun standardText(name: String): String {
 
 fun createAllActionsInlineKeyboard() = keyboard {
     +buttonRow {
-        +Button(chat.tamtam.botsdk.model.ButtonType.CALLBACK.value, "Значение слова", payload = Payloads.DICTIONARY_INPUT)
-        +Button(chat.tamtam.botsdk.model.ButtonType.CALLBACK.value, "Проверка орфографии", payload = Payloads.ORTHO_INPUT)
+        +Button(ButtonType.CALLBACK, "Значение слова", payload = Payloads.DICTIONARY_INPUT)
+        +Button(ButtonType.CALLBACK, "Проверка орфографии", payload = Payloads.ORTHO_INPUT)
     }
     +buttonRow {
-        +Button(chat.tamtam.botsdk.model.ButtonType.CALLBACK.value, "Перевести на En", payload = Payloads.TRANSLATE_EN)
-        +Button(chat.tamtam.botsdk.model.ButtonType.CALLBACK.value, "Перевести на Ru", payload = Payloads.TRANSLATE_RU)
+        +Button(ButtonType.CALLBACK, "Перевести на En", payload = Payloads.TRANSLATE_EN)
+        +Button(ButtonType.CALLBACK, "Перевести на Ru", payload = Payloads.TRANSLATE_RU)
 
     }
 }
 
 fun createBackButtonInlineKeyboard() = keyboard {
     +buttonRow {
-        +Button(ButtonType.CALLBACK.value, "Вернуться", payload = Payloads.BACK)
+        +Button(ButtonType.CALLBACK, "Вернуться", payload = Payloads.BACK)
     }
 }

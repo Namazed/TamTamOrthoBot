@@ -1,8 +1,8 @@
 package com.namazed.orthobot.db
 
 import chat.tamtam.botsdk.model.UserId
-import chat.tamtam.botsdk.model.response.Callback
-import chat.tamtam.botsdk.model.response.Message
+import chat.tamtam.botsdk.model.prepared.Callback
+import chat.tamtam.botsdk.model.prepared.Message
 import com.namazed.orthobot.bot.*
 import com.namazed.orthobot.client.model.TranslateResult
 import com.namazed.orthobot.db.mapping.getDefaultState
@@ -65,10 +65,10 @@ class UpdateStateService(
     private fun insertState(
         insertField: InsertStatement<Number>,
         updateType: UpdateTypes,
-        message: Message = Message(),
+        message: Message? = null,
         dictionaryResult: String = "",
         translateResult: TranslateResult = TranslateResult(),
-        callback: Callback = Callback(),
+        callback: Callback? = null,
         actions: Boolean = false
     ) {
         insertField[timestamp] = when {
@@ -78,16 +78,16 @@ class UpdateStateService(
         }
         insertField[dictionary] = dictionaryResult
         insertField[UpdateStates.actions] = actions
-        insertField[messageSenderName] = message.sender.name
-        insertField[messageSenderId] = message.sender.userId
-        insertField[messageRecipientChatId] = message.recipient.chatId
-        insertField[messageInfoText] = message.messageInfo.text
+        insertField[messageSenderName] = message?.sender?.name ?: ""
+        insertField[messageSenderId] = message?.sender?.userId?.id ?: -1
+        insertField[messageRecipientChatId] = message?.recipient?.chatId?.id ?: -1
+        insertField[messageInfoText] = message?.body?.text ?: ""
         insertField[translationResultLang] = translateResult.lang
         insertField[translationResultText] = if (translateResult.text.isEmpty()) "" else translateResult.text[0]
-        insertField[callbackId] = callback.callbackId
-        insertField[callbackUserId] = callback.user.userId
-        insertField[callbackUserName] = callback.user.name
-        insertField[callbackPayload] = callback.payload
+        insertField[callbackId] = callback?.callbackId?.id ?: ""
+        insertField[callbackUserId] = callback?.user?.userId?.id ?: -1
+        insertField[callbackUserName] = callback?.user?.name ?: ""
+        insertField[callbackPayload] = callback?.payload ?: ""
         insertField[updateTypes] = updateType
     }
 

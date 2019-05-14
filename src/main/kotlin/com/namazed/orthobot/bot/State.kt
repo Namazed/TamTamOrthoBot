@@ -2,15 +2,15 @@ package com.namazed.orthobot.bot
 
 import chat.tamtam.botsdk.model.CallbackId
 import chat.tamtam.botsdk.model.UserId
-import chat.tamtam.botsdk.model.response.Callback
-import chat.tamtam.botsdk.model.response.Message
+import chat.tamtam.botsdk.model.prepared.Callback
+import chat.tamtam.botsdk.model.prepared.Message
 import com.namazed.orthobot.client.model.TranslateResult
 
 sealed class UpdateState(val updateStateId: UserId)
 
 class Unknown : UpdateState(UserId(-1))
 
-class StartState(val userId: UserId, val message: Message = Message(), val actions: Boolean = false) : UpdateState(userId)
+class StartState(val userId: UserId, val message: Message? = null, val actions: Boolean = false) : UpdateState(userId)
 
 class BackState(val userId: UserId, val callback: Callback) : UpdateState(userId)
 

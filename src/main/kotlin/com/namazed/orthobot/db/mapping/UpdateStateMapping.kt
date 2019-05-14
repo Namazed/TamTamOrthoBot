@@ -1,7 +1,6 @@
 package com.namazed.orthobot.db.mapping
 
 import chat.tamtam.botsdk.model.UserId
-import chat.tamtam.botsdk.model.response.Message
 import com.namazed.orthobot.bot.*
 import com.namazed.orthobot.client.model.TranslateResult
 import com.namazed.orthobot.db.UpdateTypes
@@ -40,4 +39,4 @@ fun updateStateMapping(row: ResultRow) = when (row[UpdateStates.updateTypes]) {
     else -> Unknown()
 }
 
-fun getDefaultState() = listOf(StartState(UserId(-1), Message())).asSequence()
+fun getDefaultState() = listOf(StartState(UserId(-1), null)).asSequence()

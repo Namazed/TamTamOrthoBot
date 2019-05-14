@@ -3,10 +3,9 @@ package com.namazed.orthobot.bot
 import chat.tamtam.botsdk.client.ResultRequest
 import chat.tamtam.botsdk.model.CallbackId
 import chat.tamtam.botsdk.model.ChatId
-import chat.tamtam.botsdk.model.UserId
-import chat.tamtam.botsdk.model.response.Callback
+import chat.tamtam.botsdk.model.prepared.Callback
+import chat.tamtam.botsdk.model.prepared.Message
 import chat.tamtam.botsdk.model.response.Default
-import chat.tamtam.botsdk.model.response.SendMessage
 import chat.tamtam.botsdk.state.MessageState
 import com.namazed.orthobot.client.HttpClientManager
 import com.namazed.orthobot.client.model.createDictionaryText
@@ -31,23 +30,23 @@ class MessageUpdateLogic(
         callback: Callback,
         typingOn: suspend (ChatId) -> Unit,
         typingOff: suspend (ChatId) -> Unit,
-        sendFunction: suspend (String) -> ResultRequest<SendMessage>,
+        sendFunction: suspend (String) -> ResultRequest<Message>,
         clear: suspend (CallbackId) -> ResultRequest<Default>
     ) {
-        typingOn(ChatId(state.message.recipient.chatId))
-        val translateResult = clientManager.translate(state.message.messageInfo.text, lang)
+        typingOn(state.message.recipient.chatId)
+        val translateResult = clientManager.translate(state.message.body.text, lang)
         log.info("translate lang = $lang, ${translateResult.lang}")
 
-        val userId = UserId(state.message.sender.userId)
+        val userId = state.message.sender.userId
 
-        val callbackId = CallbackId(callback.callbackId)
+        val callbackId = callback.callbackId
         updateStateService.updateState(
             userId,
             TranslateState.Result(userId, callbackId, state.message, translateResult)
         )
         sendFunction("${translateResult.text[0]}\n$YANDEX_TEXT")
-        clear(CallbackId(callback.callbackId))
-        typingOff(ChatId(state.message.recipient.chatId))
+        clear(callback.callbackId)
+        typingOff(state.message.recipient.chatId)
     }
 
     suspend fun processInputWord(
@@ -55,23 +54,23 @@ class MessageUpdateLogic(
         callback: Callback,
         typingOn: suspend (ChatId) -> Unit,
         typingOff: suspend (ChatId) -> Unit,
-        sendFunction: suspend (String) -> ResultRequest<SendMessage>,
+        sendFunction: suspend (String) -> ResultRequest<Message>,
         clear: suspend (CallbackId) -> ResultRequest<Default>
     ) {
-        typingOn(ChatId(state.message.recipient.chatId))
+        typingOn(state.message.recipient.chatId)
         log.info("processInputWord")
-        val split = state.message.messageInfo.text.split(Regex(" "))
+        val split = state.message.body.text.split(Regex(" "))
         val dictionary = createDictionaryText(clientManager.loadDictionary(split[0]))
         log.info("processInputWord: Loaded dictionary")
 
-        val callbackId = CallbackId(callback.callbackId)
-        val userId = UserId(state.message.sender.userId)
+        val callbackId = callback.callbackId
+        val userId = state.message.sender.userId
 
         updateStateService.updateState(userId, DictionaryState.Result(userId, callbackId, state.message, dictionary))
         sendFunction(dictionary)
 
         clear(callbackId)
-        typingOff(ChatId(state.message.recipient.chatId))
+        typingOff(state.message.recipient.chatId)
     }
 
 }

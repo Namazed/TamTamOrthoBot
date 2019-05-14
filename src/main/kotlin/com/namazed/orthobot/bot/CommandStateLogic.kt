@@ -1,12 +1,9 @@
 package com.namazed.orthobot.bot
 
-import chat.tamtam.botsdk.model.ChatId
-import chat.tamtam.botsdk.model.UserId
 import chat.tamtam.botsdk.scopes.BotScope
 import chat.tamtam.botsdk.scopes.CommandsScope
 import chat.tamtam.botsdk.state.CommandState
 import chat.tamtam.botsdk.state.StartedBotState
-import com.namazed.orthobot.bot.StartState
 import com.namazed.orthobot.bot.model.createAllActionsInlineKeyboard
 import com.namazed.orthobot.db.UpdateStateService
 
@@ -15,11 +12,11 @@ suspend fun CommandsScope.handleCommandWithAllActions(
     updateStateService: UpdateStateService,
     messageText: String
 ) {
-    typingOn(ChatId(state.command.message.recipient.chatId))
-    val userId = UserId(state.command.message.sender.userId)
+    typingOn(state.command.message.recipient.chatId)
+    val userId = state.command.message.sender.userId
     updateStateService.updateState(userId, StartState(userId))
     messageText prepareFor userId sendWith createAllActionsInlineKeyboard()
-    typingOff(ChatId(state.command.message.recipient.chatId))
+    typingOff(state.command.message.recipient.chatId)
 }
 
 suspend fun BotScope.handleCommandWithAllActions(
