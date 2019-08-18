@@ -36,7 +36,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed:0.11.2")
     implementation("com.zaxxer:HikariCP:2.7.8")
     implementation("com.squareup.okhttp3:logging-interceptor:3.12.0")
-    implementation("com.github.Namazed:TamTamBotApiClientDsl:0.2.2")
+    implementation("com.github.Namazed:TamTamBotApiClientDsl:0.3.0")
 }
 
 tasks.withType<KotlinCompile> {

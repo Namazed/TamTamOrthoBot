@@ -25,7 +25,7 @@ suspend fun BotScope.handleCommandWithAllActions(
     messageText: String
 ) {
     typingOn(state.chatId)
-    val userId = state.userId
+    val userId = state.user.userId
     updateStateService.updateState(userId, StartState(userId))
     messageText prepareFor userId sendWith createAllActionsInlineKeyboard()
     typingOff(state.chatId)

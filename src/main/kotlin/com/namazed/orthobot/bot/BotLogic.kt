@@ -1,6 +1,7 @@
 package com.namazed.orthobot.bot
 
 import chat.tamtam.botsdk.client.ResultRequest
+import chat.tamtam.botsdk.communications.LongPollingStartingParams
 import chat.tamtam.botsdk.communications.longPolling
 import chat.tamtam.botsdk.model.CallbackId
 import chat.tamtam.botsdk.model.ChatId
@@ -22,10 +23,10 @@ class BotLogic(
 ) {
 
     fun start() {
-        longPolling(apiKeys.botApi) {
+        longPolling(LongPollingStartingParams(apiKeys.botApi)) {
 
             onStartBot {
-                handleCommandWithAllActions(it, updateStateService, initialText("Человек"))
+                handleCommandWithAllActions(it, updateStateService, initialText(it.user.name))
             }
 
             commands {
