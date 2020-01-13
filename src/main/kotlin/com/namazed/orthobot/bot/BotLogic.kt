@@ -5,6 +5,7 @@ import chat.tamtam.botsdk.communications.LongPollingStartingParams
 import chat.tamtam.botsdk.communications.longPolling
 import chat.tamtam.botsdk.model.CallbackId
 import chat.tamtam.botsdk.model.ChatId
+import chat.tamtam.botsdk.model.prepared.Callback
 import chat.tamtam.botsdk.model.prepared.Message
 import chat.tamtam.botsdk.model.request.AnswerParams
 import chat.tamtam.botsdk.model.response.Default
@@ -113,40 +114,26 @@ class BotLogic(
     }
 
     private fun MessagesScope.answerOnMessages() {
-        answerOnMessage {
-            val updateState = updateStateService.selectState(it.message.sender.userId)
+        answerOnMessage { state ->
+            val updateState = updateStateService.selectState(state.message.sender.userId)
             val startTyping: suspend (ChatId) -> Unit = { id -> typingOn(id) }
             val stopTyping: suspend (ChatId) -> Unit = { id -> typingOff(id) }
             val sendFunction: suspend (String) -> ResultRequest<Message> =
-                { text -> text sendFor it.message.sender.userId }
+                { text -> text sendFor state.message.sender.userId }
             val clearKeyboard: suspend (CallbackId) -> ResultRequest<Default> = { id -> "" answerFor id }
+
+            suspend fun processAction(callback: Callback, translateLang: String? = null) {
+                translateLang?.let {
+                    messageUpdateLogic.translate(translateLang, state, callback, startTyping, stopTyping,
+                        sendFunction, clearKeyboard)
+                } ?: messageUpdateLogic.processInputWord(state, callback, startTyping, stopTyping,
+                    sendFunction, clearKeyboard)
+            }
+
             when (updateState) {
-                is TranslateState.TranslateEn -> messageUpdateLogic.translate(
-                    "en",
-                    it,
-                    updateState.callback,
-                    startTyping,
-                    stopTyping,
-                    sendFunction,
-                    clearKeyboard
-                )
-                is TranslateState.TranslateRu -> messageUpdateLogic.translate(
-                    "ru",
-                    it,
-                    updateState.callback,
-                    startTyping,
-                    stopTyping,
-                    sendFunction,
-                    clearKeyboard
-                )
-                is DictionaryState.InputWord -> messageUpdateLogic.processInputWord(
-                    it,
-                    updateState.callback,
-                    startTyping,
-                    stopTyping,
-                    sendFunction,
-                    clearKeyboard
-                )
+                is TranslateState.TranslateEn -> processAction(updateState.callback, "en")
+                is TranslateState.TranslateRu -> processAction(updateState.callback, "ru")
+                is DictionaryState.InputWord -> processAction(updateState.callback)
             }
         }
 
