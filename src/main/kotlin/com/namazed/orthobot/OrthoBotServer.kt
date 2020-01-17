@@ -6,19 +6,32 @@ import com.namazed.orthobot.bot.botModule
 import com.namazed.orthobot.client.clientModule
 import com.namazed.orthobot.db.databaseModule
 import io.ktor.application.Application
+import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.application.log
 import io.ktor.features.CallLogging
+import io.ktor.request.receive
+import io.ktor.routing.get
+import io.ktor.routing.routing
+import org.koin.ktor.ext.Koin
+import org.koin.ktor.ext.getKoin
 import org.koin.ktor.ext.inject
-import org.koin.ktor.ext.setProperty
-import org.koin.standalone.StandAloneContext.startKoin
 
 fun Application.main() {
-    startKoin(listOf(serverModule, clientModule, botModule, databaseModule))
-    setProperty("LOGGER", log)
+    install(CallLogging)
+    install(Koin) {
+        modules(listOf(serverModule, clientModule, botModule, databaseModule))
+    }
+
+    getKoin().setProperty("LOGGER", log)
     val botLogic: BotLogic by inject()
 
-    install(CallLogging)
+    routing {
+        get("/updates") {
+            val updates = call.receive<String>()
+            botLogic.parseUpdates(updates)
+        }
+    }
 
-    botLogic.start()
+    botLogic.start(true)
 }

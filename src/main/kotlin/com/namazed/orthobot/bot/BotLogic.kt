@@ -1,14 +1,19 @@
 package com.namazed.orthobot.bot
 
+import chat.tamtam.botsdk.Coordinator
 import chat.tamtam.botsdk.client.ResultRequest
 import chat.tamtam.botsdk.communications.LongPollingStartingParams
+import chat.tamtam.botsdk.communications.WebhookStartingParams
 import chat.tamtam.botsdk.communications.longPolling
+import chat.tamtam.botsdk.communications.webhook
 import chat.tamtam.botsdk.model.CallbackId
 import chat.tamtam.botsdk.model.ChatId
 import chat.tamtam.botsdk.model.prepared.Callback
 import chat.tamtam.botsdk.model.prepared.Message
 import chat.tamtam.botsdk.model.request.AnswerParams
+import chat.tamtam.botsdk.model.request.Subscription
 import chat.tamtam.botsdk.model.response.Default
+import chat.tamtam.botsdk.scopes.BotScope
 import chat.tamtam.botsdk.scopes.CallbacksScope
 import chat.tamtam.botsdk.scopes.MessagesScope
 import com.namazed.orthobot.ApiKeys
@@ -23,41 +28,55 @@ class BotLogic(
     private val log: Logger
 ) {
 
-    fun start() {
-        longPolling(LongPollingStartingParams(apiKeys.botApi)) {
+    private var coordinator: Coordinator? = null
 
-            onStartBot {
-                handleCommandWithAllActions(it, updateStateService, initialText(it.user.name))
+    fun parseUpdates(updatesJson: String) {
+        coordinator?.coordinateAsync(updatesJson)
+    }
+
+    fun start(webhook: Boolean) {
+        coordinator = if (webhook) {
+            webhook(WebhookStartingParams(apiKeys.botApi,
+                subscription = Subscription(url = "https://secure-scrubland-29690.herokuapp.com/updates"))) {
+                updatesProcessing()
+            }
+        } else {
+            longPolling(LongPollingStartingParams(apiKeys.botApi)) { updatesProcessing() }
+        }
+    }
+
+    private fun BotScope.updatesProcessing() {
+        onStartBot {
+            handleCommandWithAllActions(it, updateStateService, initialText(it.user.name))
+        }
+
+        commands {
+
+            onCommand("/start") {
+                log.info("onCommand /start")
+                handleCommandWithAllActions(it, updateStateService, initialText(it.command.message.sender.name))
             }
 
-            commands {
-
-                onCommand("/start") {
-                    log.info("onCommand /start")
-                    handleCommandWithAllActions(it, updateStateService, initialText(it.command.message.sender.name))
-                }
-
-                onCommand("/actions") {
-                    log.info("onCommand /actions")
-                    handleCommandWithAllActions(it, updateStateService, standardText(it.command.message.sender.name))
-                }
-
-                onUnknownCommand {
-                    typingOn(it.command.message.recipient.chatId)
-                    """Неизвестная команда, я работаю только с:
-                    |/start
-                    |/actions""".trimMargin() sendFor it.command.message.recipient.chatId
-                    typingOff(it.command.message.recipient.chatId)
-                }
+            onCommand("/actions") {
+                log.info("onCommand /actions")
+                handleCommandWithAllActions(it, updateStateService, standardText(it.command.message.sender.name))
             }
 
-            callbacks {
-                answerOnCallbacks()
+            onUnknownCommand {
+                typingOn(it.command.message.recipient.chatId)
+                """Неизвестная команда, я работаю только с:
+                        |/start
+                        |/actions""".trimMargin() sendFor it.command.message.recipient.chatId
+                typingOff(it.command.message.recipient.chatId)
             }
+        }
 
-            messages {
-                answerOnMessages()
-            }
+        callbacks {
+            answerOnCallbacks()
+        }
+
+        messages {
+            answerOnMessages()
         }
     }
 

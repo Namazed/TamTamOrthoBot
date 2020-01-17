@@ -1,6 +1,6 @@
 package com.namazed.orthobot.bot
 
-import org.koin.dsl.module.module
+import org.koin.dsl.module
 
 val botModule = module {
     single { MessageUpdateLogic(get(), get(), getProperty("LOGGER")) }

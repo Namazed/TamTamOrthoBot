@@ -5,17 +5,18 @@ import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
-import org.koin.dsl.module.module
+import org.koin.core.qualifier.named
+import org.koin.dsl.module
 import java.util.concurrent.Executors
 
 
 val databaseModule = module {
     single { createHikariDataSource() }
-    single<CoroutineDispatcher>(name = "databaseDispatcher") {
+    single<CoroutineDispatcher>(named("databaseDispatcher")) {
         Executors.newFixedThreadPool(5).asCoroutineDispatcher()
     }
-    single { DatabaseManager(get(), get("databaseDispatcher")) }
-    single(name = "apodServiceJob") { Job() }
+    single { DatabaseManager(get(), get(named("databaseDispatcher"))) }
+    single { Job() }
     single { UpdateStateService(get(), get()) }
 }
 

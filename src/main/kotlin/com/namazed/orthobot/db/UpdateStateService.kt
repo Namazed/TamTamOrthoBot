@@ -21,10 +21,7 @@ import com.namazed.orthobot.db.model.UpdateStates.timestamp
 import com.namazed.orthobot.db.model.UpdateStates.translationResultLang
 import com.namazed.orthobot.db.model.UpdateStates.translationResultText
 import com.namazed.orthobot.db.model.UpdateStates.updateTypes
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.*
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
@@ -33,7 +30,7 @@ import kotlin.coroutines.CoroutineContext
 
 class UpdateStateService(
     private val databaseManager: DatabaseManager,
-    val parentJob: Job,
+    private val parentJob: CompletableJob,
     override val coroutineContext: CoroutineContext = SupervisorJob(parentJob) + Dispatchers.IO
 ) : CoroutineScope {
 
