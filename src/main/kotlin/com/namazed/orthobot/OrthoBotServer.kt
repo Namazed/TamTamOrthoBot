@@ -10,8 +10,12 @@ import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.application.log
 import io.ktor.features.CallLogging
+import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
+import io.ktor.response.respond
+import io.ktor.response.respondText
 import io.ktor.routing.get
+import io.ktor.routing.post
 import io.ktor.routing.routing
 import org.koin.ktor.ext.Koin
 import org.koin.ktor.ext.getKoin
@@ -27,8 +31,12 @@ fun Application.main() {
     val botLogic: BotLogic by inject()
 
     routing {
-        get("/updates") {
+        get("/") {
+            call.respondText("Server available")
+        }
+        post("/updates") {
             val updates = call.receive<String>()
+            call.respond(HttpStatusCode.OK)
             botLogic.parseUpdates(updates)
         }
     }
